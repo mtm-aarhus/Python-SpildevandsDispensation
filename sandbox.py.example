@@ -1,0 +1,61 @@
+# Copy to sandbox.py (gitignored) to run one element by hand.
+# NB: it writes a real row to the table SpatialMap shows - delete it again by its Id afterwards.
+from OpenOrchestrator.orchestrator_connection.connection import OrchestratorConnection
+import os
+from robot_framework.process import process
+from OpenOrchestrator.database.queues import QueueElement, QueueStatus
+import json
+from typing import Optional
+
+def make_queue_element_with_payload(
+    payload: dict | list,
+    queue_name: str,
+    reference: Optional[str] = None,
+    created_by: Optional[str] = None,
+    status: QueueStatus = QueueStatus.NEW,
+) -> QueueElement:
+    # Validate & serialize
+    data_str = json.dumps(payload, ensure_ascii=False)
+    if len(data_str) > 2000:
+        raise ValueError("data exceeds 2000 chars (column limit)")
+
+    return QueueElement(
+        queue_name=queue_name,
+        status=status,
+        data=data_str,
+        reference=reference,
+        created_by=created_by,
+    )
+
+raw_json = """{
+  "Vejnavn": "Agrivej",
+  "Husnummer": "11",
+  "TrappeskakterAntal": "1",
+  "TrappeskakterAreal": "2,16",
+  "LyskasserAntal": "0",
+  "LyskasserAreal": "",
+  "ExternalID": "Sandbox",
+  "DatoAnsoegning": "2026-10-23"
+}"""
+
+payload = json.loads(raw_json)
+
+
+qe = make_queue_element_with_payload(
+    payload=payload,
+    queue_name="SpildevandsDispensation",
+    reference="Sandbox",
+    status=QueueStatus.NEW,
+)
+
+orchestrator_connection = OrchestratorConnection(
+        "SpildevandsDispensation",
+        os.getenv("OpenOrchestratorSQL"),
+        os.getenv("OpenOrchestratorKey"),
+        None,
+        None,
+        None
+    )
+
+
+process(orchestrator_connection, qe)

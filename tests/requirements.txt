@@ -1,0 +1,8 @@
+# What the tests need. They test the parts of the robot that don't need OpenOrchestrator
+# (robot_framework/adresse.py, ansoegning.py, database.py) with the web services and the
+# database faked. pyproj is here only to check adresse.utm32_to_wgs84 - the robot itself
+# doesn't depend on it.
+# Installed into tests/.venv by tests/opsaet_testmiljoe.py.
+requests <= 2.34.2
+pyodbc <= 5.3.0
+pyproj <= 3.8.0
